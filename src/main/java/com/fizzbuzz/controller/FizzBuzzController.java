@@ -1,51 +1,65 @@
 package com.fizzbuzz.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 import com.fizzbuzz.model.FizzBuzz;
-import com.fizzbuzz.controller.CategorizerChain;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.util.*;
-import java.io.*;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
 @RestController
 public class FizzBuzzController {
     @RequestMapping(value = "/fizzbuzz/{upperLimit}", method = RequestMethod.GET, produces = "application/json")
     public String fizzBuzz(@PathVariable("upperLimit") int upperLimit) {
-        List<String> results = new ArrayList<>();
-
-        for(int i = 1; i <= upperLimit; i++) {
-            results.add(CategorizerChain.Calculate(i));
-        }
+        FizzBuzz fizzBuzzObj = new FizzBuzz();
+        List<Integer> fizzList = new ArrayList<>(),
+                      buzzList = new ArrayList<>(), 
+                      fizzBuzzList = new ArrayList<>();
+        ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+            // Example of Java 8 Streams.
+            IntStream.range(1, upperLimit+1)
+            .forEach(i -> {
+                switch(CategorizerChain.Calculate(i)){
+                    case "Buzz":
+                        buzzList.add(i);
+                        break;
+                    case "Fizz":
+                        fizzList.add(i);
+                        break;
+                    case "FizzBuzz":
+                        fizzBuzzList.add(i);
+                        break;
+                }
+            });
 
-            // return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(results);
+            fizzBuzzObj.setFizz(fizzList);
+            fizzBuzzObj.setBuzz(buzzList);
+            fizzBuzzObj.setFizzBuzz(fizzBuzzList);
 
-            FizzBuzz fb = new FizzBuzz();
-            List<Integer> a = new ArrayList<>();
-            List<Integer> b = new ArrayList<>();
-            List<Integer> c = new ArrayList<>();
-
-            a.add(1);
-            b.add(2);
-            c.add(3);
-
-            fb.setFizz(a);
-            fb.setBuzz(b);
-            fb.setFizzBuzz(c);
-
-            return objectMapper.writeValueAsString(fb);
+            return objectMapper.writeValueAsString(fizzBuzzObj);
         } catch(Exception e) {
-            // return e.toString(); // Remove this, this is for debugging
+            System.out.println("Error.");
             return null;
         }
+    }
+
+    // If no upper limit is supplied, just return results for 1-100.
+    @RequestMapping(value = "/fizzbuzz", method = RequestMethod.GET, produces = "application/json")
+    public String defaultFizzBuzz() {
+        return fizzBuzz(100);
+    }
+
+    // Return this error if a non-integer value is supplied for upperLimit.
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public void handleParameterTypeMismatch(IllegalArgumentException e, HttpServletResponse response)  throws IOException {
+        response.sendError(HttpStatus.BAD_REQUEST.value(), "Please try again with an integer value.");
     }
 }
