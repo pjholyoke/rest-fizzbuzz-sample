@@ -42,7 +42,7 @@ public class FizzBuzzController {
             fb.setBuzz(b);
             fb.setFizzBuzz(c);
 
-            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(fb);
+            return objectMapper.writeValueAsString(fb);
         } catch(Exception e) {
             // return e.toString(); // Remove this, this is for debugging
             return null;

@@ -5,15 +5,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.*;
 
-@JsonIgnoreProperties(ignoreUnknown = false)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FizzBuzz {
-    @JsonProperty("Fizz")
+    @JsonProperty("fizz")
     private List<Integer> Fizz;
 
-    @JsonProperty("Buzz")
+    @JsonProperty("buzz")
     private List<Integer> Buzz;
 
-    @JsonProperty("FizzBuzz")
+    @JsonProperty("fizzBuzz")
     private List<Integer> FizzBuzz;
 
     public List<Integer> getFizz() {
