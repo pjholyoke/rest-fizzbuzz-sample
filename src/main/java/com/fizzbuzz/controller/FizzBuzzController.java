@@ -13,20 +13,21 @@ import java.io.*;
 
 @RestController
 public class FizzBuzzController {
-    @RequestMapping(value = "/hello", method = RequestMethod.GET, produces = "text/plain")
+    @RequestMapping(value = "/hello", method = RequestMethod.GET, produces = "application/json")
     public String helloWorld() {
         List<String> results = new ArrayList<>();
 
-        for(int i = 0; i < 100; i++) {
+        for(int i = 1; i <= 100; i++) {
             results.add(CategorizerChain.Calculate(i));
         }
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-            String arrayToJson = objectMapper.writeValueAsString(results);
 
-            return arrayToJson;
-        } catch(Exception e) { }
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(results);
+        } catch(Exception e) {
+            return e.toString(); // Remove this, this is for debugging
+        }
     }
 }
