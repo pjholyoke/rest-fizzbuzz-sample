@@ -56,12 +56,6 @@ public class FizzBuzzController {
         return null;
     }
 
-    // If no upper limit is supplied, just return results for 1-100.
-    @RequestMapping(value = "/fizzbuzz", method = RequestMethod.GET, produces = "application/json")
-    public String defaultFizzBuzz(HttpServletResponse response) {
-        return fizzBuzz(100, response);
-    }
-
     // Return this error if a non-integer value is supplied for upperLimit.
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public void handleParameterTypeMismatch(IllegalArgumentException e, HttpServletResponse response)  throws IOException {
