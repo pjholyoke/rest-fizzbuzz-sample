@@ -1,5 +1,7 @@
 package com.fizzbuzz.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,7 +18,9 @@ import java.util.stream.IntStream;
 @RestController
 public class FizzBuzzController {
     @RequestMapping(value = "/fizzbuzz/{upperLimit}", method = RequestMethod.GET, produces = "application/json")
-    public String fizzBuzz(@PathVariable("upperLimit") int upperLimit) {
+    public String fizzBuzz(@PathVariable("upperLimit") int upperLimit, HttpServletResponse response) {
+        Logger logger = Logger.getLogger(FizzBuzzController.class);
+
         FizzBuzz fizzBuzzObj = new FizzBuzz();
         List<Integer> fizzList = new ArrayList<>(),
                       buzzList = new ArrayList<>(), 
@@ -24,10 +28,10 @@ public class FizzBuzzController {
         ObjectMapper objectMapper = new ObjectMapper();
 
         try {
-            // Example of Java 8 Streams.
-            IntStream.range(1, upperLimit+1)
+            // Loop through range of numbers, adding them to their corresponding list.
+            IntStream.range(1, upperLimit + 1)
             .forEach(i -> {
-                switch(CategorizerChain.Calculate(i)){
+                switch (CategorizerChain.Calculate(i)) {
                     case "Buzz":
                         buzzList.add(i);
                         break;
@@ -45,21 +49,28 @@ public class FizzBuzzController {
             fizzBuzzObj.setFizzBuzz(fizzBuzzList);
 
             return objectMapper.writeValueAsString(fizzBuzzObj);
-        } catch(Exception e) {
-            System.out.println("Error.");
-            return null;
+        } catch (JsonProcessingException e) {
+            logger.error(e.getMessage());
         }
+
+        return null;
     }
 
     // If no upper limit is supplied, just return results for 1-100.
     @RequestMapping(value = "/fizzbuzz", method = RequestMethod.GET, produces = "application/json")
-    public String defaultFizzBuzz() {
-        return fizzBuzz(100);
+    public String defaultFizzBuzz(HttpServletResponse response) {
+        return fizzBuzz(100, response);
     }
 
     // Return this error if a non-integer value is supplied for upperLimit.
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public void handleParameterTypeMismatch(IllegalArgumentException e, HttpServletResponse response)  throws IOException {
         response.sendError(HttpStatus.BAD_REQUEST.value(), "Please try again with an integer value.");
+    }
+
+    // Return this error if there is an issue serializing JSON.
+    @ExceptionHandler(JsonProcessingException.class)
+    public void handleSerializationError(JsonProcessingException e, HttpServletResponse response)  throws IOException {
+        response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "There was an error serializing an object to JSON.");
     }
 }
